@@ -29,7 +29,7 @@ const OrderDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 10,
+    gap: 20,
     padding: 10,
   },
 });
