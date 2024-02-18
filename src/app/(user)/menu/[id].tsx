@@ -7,7 +7,6 @@ import Button from "@/components/Button";
 import { useCart } from "@/providers/CartProvider";
 import type { PizzaSize } from "@/types";
 
-
 const sizes: PizzaSize[] = ["S", "M", "L", "XL"];
 
 const ProductDetailScreen = () => {
