@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, FlatList } from "react-native";
+import { View, FlatList } from "react-native";
 import orders from "@assets/data/orders";
 import OrderListItem from "@components/OrderListItem";
 
