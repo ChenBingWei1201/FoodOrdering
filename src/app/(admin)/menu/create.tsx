@@ -1,10 +1,16 @@
 import Button from "@/components/Button";
 import { defaultPizzaImage } from "@/components/ProductListItem";
 import Colors from "@/constants/Colors";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TextInput, Image, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
+import {
+  useInsertProduct,
+  useUpdateProduct,
+  useProduct,
+  useDeleteProduct,
+} from "@/api/products";
 
 const CreateProductScreen = () => {
   const [name, setName] = useState("");
@@ -12,8 +18,22 @@ const CreateProductScreen = () => {
   const [error, setError] = useState("");
   const [image, setImage] = useState<string | null>(null);
 
-  const { id } = useLocalSearchParams();
+  const { id: idString } = useLocalSearchParams();
+  const id = parseInt(typeof idString === "string" ? idString : idString?.[0]);
   const isUpdating = !!id; // convert a value to a boolean
+
+  const { mutate: insertProduct } = useInsertProduct();
+  const { mutate: updateProduct } = useUpdateProduct();
+  const { data: updatingProduct } = useProduct(id);
+  const { mutate: deleteProduct } = useDeleteProduct();
+
+  useEffect(() => {
+    if (updatingProduct) {
+      setName(updatingProduct.name);
+      setImage(updatingProduct.image);
+      setPrice(updatingProduct.price.toString());
+    }
+  }, [updatingProduct]);
 
   const resetFields = () => {
     setName("");
@@ -51,10 +71,20 @@ const CreateProductScreen = () => {
       return;
     }
 
-    console.warn("Update", { name, price });
-
-    // update database
-    resetFields();
+    updateProduct(
+      {
+        id,
+        name,
+        image,
+        price: parseFloat(price),
+      },
+      {
+        onSuccess: () => {
+          resetFields();
+          router.back();
+        },
+      }
+    );
   };
 
   const onCreate = () => {
@@ -62,9 +92,21 @@ const CreateProductScreen = () => {
       return;
     }
 
-    console.warn("Create", { name, price });
-
     // save to database
+    insertProduct(
+      {
+        name,
+        image,
+        price: parseFloat(price),
+      },
+      {
+        onSuccess: () => {
+          resetFields();
+          router.back();
+        },
+      }
+    );
+
     resetFields();
   };
 
@@ -85,7 +127,12 @@ const CreateProductScreen = () => {
   };
 
   const onDelete = () => {
-    console.warn("Delete!!!!!");
+    deleteProduct(id, {
+      onSuccess: () => {
+        resetFields();
+        router.replace("/(admin)");
+      },
+    });
   };
 
   const confirmDelete = () => {
