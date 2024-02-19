@@ -2,6 +2,7 @@ import { CartItem, Product } from "@/types";
 import { PropsWithChildren, createContext, useContext } from "react";
 import { useState } from "react";
 import { randomUUID } from "expo-crypto";
+
 type CartType = {
   items: CartItem[];
   addItem: (product: Product, size: CartItem["size"]) => void;
