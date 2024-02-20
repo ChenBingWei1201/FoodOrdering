@@ -13,7 +13,7 @@ const Button = forwardRef<View | null, ButtonProps>(
         <Text style={styles.text}>{text}</Text>
       </Pressable>
     );
-  }
+  },
 );
 
 const styles = StyleSheet.create({

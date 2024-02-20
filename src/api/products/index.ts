@@ -1,6 +1,9 @@
+import { Tables } from "@/database.types";
 import { supabase } from "@/lib/supabase";
-import { Product } from "@/types";
+// import { Product } from "@/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+type Product = Tables<"products">;
 
 // reading all products
 export const useProductList = () => {
@@ -18,7 +21,7 @@ export const useProductList = () => {
 
 // reading products by id
 export const useProduct = (id: number) => {
-  return useQuery<Product>({
+  return useQuery({
     queryKey: ["products", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -47,6 +50,10 @@ export const useInsertProduct = () => {
           image: data.image,
           price: data.price,
         });
+      if (error) {
+        throw new Error(error.message);
+      }
+      return newProduct;
     },
     async onSuccess() {
       await queryClient.invalidateQueries({ queryKey: ["products"] });
@@ -85,10 +92,7 @@ export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
     async mutationFn(id: number) {
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) {
         throw new Error(error.message);
       }

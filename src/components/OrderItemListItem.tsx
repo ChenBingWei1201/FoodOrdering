@@ -1,14 +1,18 @@
 import { View, Text, StyleSheet, Image } from "react-native";
 import React from "react";
 import Colors from "../constants/Colors";
-import { OrderItem } from "@/types";
+// import { OrderItem } from "@/types";
 import { defaultPizzaImage } from "./ProductListItem";
+import { Tables } from "@/database.types";
 
 type OrderItemListItemProps = {
-  orderItem: OrderItem;
+  orderItem: { products: Tables<"products"> | null} & Tables<"order_items">;
 };
 
 const OrderItemListItem = ({ orderItem }: OrderItemListItemProps) => {
+  if (!orderItem.products) {
+    return null;
+  }
   return (
     <View style={styles.container}>
       <Image

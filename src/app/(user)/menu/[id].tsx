@@ -44,7 +44,7 @@ const ProductDetailScreen = () => {
   }
 
   if (error) {
-    return <Text>Fail to fetch product</Text>;
+    return <Text>Fail to fetch</Text>;
   }
 
   return (
