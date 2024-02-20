@@ -11,16 +11,15 @@ import OrderItemListItem from "@/components/OrderItemListItem";
 import { useOrderDetails } from "@/api/orders";
 import { useUpdateOrderSubscription } from "@/api/orders/subscription";
 
-const OrderDetailScreen = () => {
+export default function OrderDetailScreen() {
   const { id: idString } = useLocalSearchParams();
   const id = parseInt(typeof idString === "string" ? idString : idString[0]);
   const { data: order, isLoading, error } = useOrderDetails(id);
-
+  useUpdateOrderSubscription(id); // 1
+  // cannot change the order between 1 and 2, or hook error will occur
   if (!order) {
     return <Text>Order not found</Text>;
-  }
-
-  useUpdateOrderSubscription(id);
+  } // 2
 
   if (isLoading) {
     return <ActivityIndicator />;
@@ -42,7 +41,7 @@ const OrderDetailScreen = () => {
       />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -51,5 +50,3 @@ const styles = StyleSheet.create({
     padding: 10,
   },
 });
-
-export default OrderDetailScreen;

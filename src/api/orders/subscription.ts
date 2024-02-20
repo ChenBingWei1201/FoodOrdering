@@ -25,18 +25,24 @@ export const useInsertOrderSubscription = () => {
 export const useUpdateOrderSubscription = (id: number) => {
   const queryClient = useQueryClient();
   useEffect(() => {
-    const orderSubscription = supabase
-      .channel("custom-update-channel")
+    const orders = supabase
+      .channel("custom-filter-channel")
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `id=eq.${id}`,
+        },
         (payload) => {
-          queryClient.invalidateQueries({ queryKey: ["orders", id] });
+          queryClient.invalidateQueries({ queryKey: ["orders"] });
         }
       )
       .subscribe();
+
     return () => {
-      orderSubscription.unsubscribe();
+      orders.unsubscribe();
     };
   }, []);
 };
