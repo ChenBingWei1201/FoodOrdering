@@ -1,7 +1,6 @@
-import { Tables } from "@/database.types";
 import { supabase } from "@/lib/supabase";
-// import { Product } from "@/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { UpdateTables, Tables, InsertTables } from "@/types";
 
 type Product = Tables<"products">;
 
@@ -37,12 +36,12 @@ export const useProduct = (id: number) => {
   });
 };
 
-//
+// add new product
 export const useInsertProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    async mutationFn(data: any) {
+    async mutationFn(data: InsertTables<"products">) {
       const { data: newProduct, error } = await supabase
         .from("products")
         .insert({
@@ -61,19 +60,26 @@ export const useInsertProduct = () => {
   });
 };
 
+// update product
 export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    async mutationFn(data: any) {
+    async mutationFn({
+      id,
+      updatingFields,
+    }: {
+      id: number;
+      updatingFields: UpdateTables<"products">;
+    }) {
       const { data: updatedProduct, error } = await supabase
         .from("products")
         .update({
-          name: data.name,
-          image: data.image,
-          price: data.price,
+          name: updatingFields.name,
+          image: updatingFields.image,
+          price: updatingFields.price,
         })
-        .eq("id", data.id)
+        .eq("id", id)
         .select()
         .single();
       if (error) {
@@ -81,13 +87,14 @@ export const useUpdateProduct = () => {
       }
       return updatedProduct;
     },
-    async onSuccess(_, { data }) {
+    async onSuccess(_, id) {
       await queryClient.invalidateQueries({ queryKey: ["products"] }); // different
-      await queryClient.invalidateQueries({ queryKey: ["products", data.id] });
+      await queryClient.invalidateQueries({ queryKey: ["products", id] });
     },
   });
 };
 
+// delete product
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({

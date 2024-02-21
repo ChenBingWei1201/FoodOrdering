@@ -11,6 +11,10 @@ import {
   useProduct,
   useDeleteProduct,
 } from "@/api/products";
+import * as FileSystem from "expo-file-system";
+import { randomUUID } from "expo-crypto";
+import { supabase } from "@/lib/supabase";
+import { decode } from "base64-arraybuffer";
 
 const CreateProductScreen = () => {
   const [name, setName] = useState("");
@@ -58,25 +62,25 @@ const CreateProductScreen = () => {
     return true;
   };
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (isUpdating) {
-      onUpdate();
+      await onUpdate();
     } else {
-      onCreate();
+      await onCreate();
     }
   };
 
-  const onUpdate = () => {
+  const onUpdate = async () => {
     if (!validateInput()) {
       return;
     }
 
+    const imagePath = await uploadImage();
+
     updateProduct(
       {
         id,
-        name,
-        image,
-        price: parseFloat(price),
+        updatingFields: { name, image: imagePath, price: parseFloat(price) },
       },
       {
         onSuccess: () => {
@@ -87,16 +91,18 @@ const CreateProductScreen = () => {
     );
   };
 
-  const onCreate = () => {
+  const onCreate = async () => {
     if (!validateInput()) {
       return;
     }
+
+    const imagePath = await uploadImage();
 
     // save to database
     insertProduct(
       {
         name,
-        image,
+        image: imagePath,
         price: parseFloat(price),
       },
       {
@@ -119,10 +125,31 @@ const CreateProductScreen = () => {
       quality: 1,
     });
 
-    console.log(result);
-
     if (!result.canceled) {
       setImage(result.assets[0].uri);
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!image?.startsWith("file://")) {
+      return;
+    }
+
+    const base64 = await FileSystem.readAsStringAsync(image, {
+      encoding: "base64",
+    });
+    const filePath = `${randomUUID()}.png`;
+    const contentType = "image/png";
+    const { data, error } = await supabase.storage
+      .from("product-images") // specific pocket in storage
+      .upload(filePath, decode(base64), { contentType });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (data) {
+      return data.path;
     }
   };
 
